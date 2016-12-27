@@ -19,3 +19,10 @@ A tool to write and read encrypted notes
 `-l --list`    - Read and list notes that exist
 
 Use no flags to create a new entry
+
+
+### Things to note
+
+If you delete the `.writeLandKey` from the `writeLandOutput` directory (by default in your `HOME`) you will not be able to decrypt any of your notes.
+
+If you delete the `writeLandOutput` directory (by default in your `HOME`) you will lose all your notes.
