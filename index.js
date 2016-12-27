@@ -68,7 +68,6 @@ const parseOptions = () => {
     notes = notes.filter((note) => note !== '.writeLandKey');
     notes.forEach(function (note) {
       const fileData = fs.readFileSync(path.join(outputDir, note), 'utf8');
-      console.log(fileData);
       console.log(decrypt(key, fileData));
     });
     rl.close();
