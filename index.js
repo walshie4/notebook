@@ -67,6 +67,7 @@ const parseOptions = () => {
     let notes = fs.readdirSync(outputDir);
     notes = notes.filter((note) => note !== '.writeLandKey');
     notes.forEach(function (note) {
+      if (cli.verbose) console.log(`Reading note ${note}`);
       const fileData = fs.readFileSync(path.join(outputDir, note), 'utf8');
       console.log(decrypt(key, fileData));
     });
@@ -78,7 +79,7 @@ const parseOptions = () => {
       const outputPath = path.join(outputDir, new Date().toISOString());
       const data = encrypt(key, resp);
       if (cli.verbose) console.log(`Writing note ${data} to note file ${outputPath}`);
-      fs.writeFileSync(outputPath, data);
+      fs.writeFileSync(outputPath, data, 'utf8');
       rl.close();
     });
   }
@@ -89,19 +90,19 @@ const parseOptions = () => {
  */
 
 const encrypt = function(keyStr, data) {
-  key = crypto.createHash('sha256')
+  const encKey = crypto.createHash('sha256')
               .update(keyStr)
               .digest();
-  cipher = crypto.createCipheriv('aes256', key, key.slice(0, 16));
+  cipher = crypto.createCipheriv('aes256', encKey, encKey.slice(0, 16));
   cipher.end(data, 'utf8');
   return cipher.read().toString('base64');
 };
 
 const decrypt = function(keyStr, data) {
-  key = crypto.createHash('sha256')
+  const encKey = crypto.createHash('sha256')
               .update(keyStr)
               .digest();
-  decipher = crypto.createDecipheriv('aes256', key, key.slice(0, 16));
+  decipher = crypto.createDecipheriv('aes256', encKey, encKey.slice(0, 16));
   decipher.end(data, 'base64');
   return decipher.read().toString('utf8');
 };
