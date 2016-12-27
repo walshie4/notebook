@@ -1,62 +1,108 @@
-const {app, BrowserWindow} = require('electron')
-const path                 = require('path')
-const url                  = require('url')
-const React                = require('react')
-const ReactDOM             = require('react-dom')
-const Radium               = require('radium')
+const cli      = require('commander');
+const crypto   = require('crypto');
+const readline = require('readline');
+const fs       = require('fs');
+const path     = require('path');
 
+cli
+  .version(require('./package').version)
+  .option('-v, --verbose', 'Verbose logging')
+  .option('-l --list', 'List notes')
+  .parse(process.argv);
 
-if(!process.env.NODE_ENV) {
-  process.env.NODE_ENV = 'development'
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+/**
+ * Set up
+ */
+
+if (cli.verbose) console.log('Starting up.');
+
+const outputDir = process.env.WRITE_DIR || path.join(process.env.HOME, 'writeLandOuput');
+if (!fs.existsSync(outputDir)) {
+  if (cli.verbose) console.log(`Output dir not found creating at ${outputDir}`);
+  fs.mkdirSync(outputDir);
 }
 
-// Keep a global reference of the window object, if you don't, the window will
-// be closed automatically when the JavaScript object is garbage collected.
-let win
+const keyFile = process.env.WRITE_ENC_KEY || path.join(outputDir, '.writeLandKey');
+let key;
 
-function createWindow () {
-  // Create the browser window.
-  win = new BrowserWindow({width: 800, height: 600})
-
-  // and load the index.html of the app.
-  win.loadURL(url.format({
-    pathname: path.join(__dirname, 'index.html'),
-    protocol: 'file:',
-    slashes: true
-  }))
-
-  if(process.env.NODE_ENV === 'development') {
-    // Open the DevTools.
-    win.webContents.openDevTools()
+rl.question('Enter encryption passphrase: ', (passwd) => {
+  // First run, no key file
+  if (!fs.existsSync(keyFile)) {
+    crypto.randomBytes(4096, (err, buf) => {
+      key = buf.toString('hex');
+      const keyData = `Passwd:${key}dwssaP`;
+      fs.writeFileSync(keyFile, encrypt(passwd, keyData), 'utf8');
+    });
+  } else {
+    if (cli.verbose) console.log('Decrypting keyfile');
+    const keyData = decrypt(passwd, fs.readFileSync(keyFile, 'utf8'));
+    if (/^Passwd\:.*dwssaP$/.test(keyData)) {
+      key = keyData.slice(7, -6);
+    } else {
+      console.log('Decrypting keyfile failed');
+    }
   }
+  // Key file exists
+  rl.resume();
+  parseOptions();
+});
 
-  // Emitted when the window is closed.
-  win.on('closed', () => {
-    // Dereference the window object, usually you would store windows
-    // in an array if your app supports multi windows, this is the time
-    // when you should delete the corresponding element.
-    win = null
-  })
-}
+const parseOptions = () => {
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.on('ready', createWindow)
+  if (cli.verbose) console.log(`Using output dir ${outputDir}`);
 
-// Quit when all windows are closed.
-app.on('window-all-closed', () => {
-  // On macOS it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== 'darwin') {
-    app.quit()
+  /**
+  * Option parsing
+  */
+
+  if (cli.list) {
+    // Decrypt and show entry
+    if (cli.verbose) console.log('Reading output directory');
+    // Read through save dir and list entries
+    let notes = fs.readdirSync(outputDir);
+    notes = notes.filter((note) => note !== '.writeLandKey');
+    notes.forEach(function (note) {
+      const fileData = fs.readFileSync(path.join(outputDir, note), 'utf8');
+      console.log(fileData);
+      console.log(decrypt(key, fileData));
+    });
+    rl.close();
+
+  } else {
+    // Take and save new entry
+    rl.question('Enter new note: ', (resp) => {
+      const outputPath = path.join(outputDir, new Date().toISOString());
+      const data = encrypt(key, resp);
+      if (cli.verbose) console.log(`Writing note ${data} to note file ${outputPath}`);
+      fs.writeFileSync(outputPath, data);
+      rl.close();
+    });
   }
-})
+};
 
-app.on('activate', () => {
-  // On macOS it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (win === null) {
-    createWindow()
-  }
-})
+/**
+ * Encryption helper functions
+ */
+
+const encrypt = function(keyStr, data) {
+  key = crypto.createHash('sha256')
+              .update(keyStr)
+              .digest();
+  cipher = crypto.createCipheriv('aes256', key, key.slice(0, 16));
+  cipher.end(data, 'utf8');
+  return cipher.read().toString('base64');
+};
+
+const decrypt = function(keyStr, data) {
+  key = crypto.createHash('sha256')
+              .update(keyStr)
+              .digest();
+  decipher = crypto.createDecipheriv('aes256', key, key.slice(0, 16));
+  decipher.end(data, 'base64');
+  return decipher.read().toString('utf8');
+};

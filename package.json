@@ -1,11 +1,11 @@
 {
   "name": "write-land",
   "version": "0.1.0",
-  "description": "",
+  "description": "A place to take notes",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "./node_modules/.bin/electron ."
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",
@@ -17,12 +17,8 @@
     "url": "https://github.com/honeyscience/write-land/issues"
   },
   "homepage": "https://github.com/honeyscience/write-land#readme",
-  "devDependencies": {
-    "electron": "1.4.12"
-  },
+  "devDependencies": {},
   "dependencies": {
-    "radium": "0.18.1",
-    "react": "15.4.1",
-    "react-dom": "15.4.1"
+    "commander": "^2.9.0"
   }
 }
