@@ -1,5 +1,5 @@
 {
-  "name": "write-land",
+  "name": "notebook",
   "version": "0.1.0",
   "description": "A place to take notes",
   "main": "index.js",
@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/honeyscience/write-land.git"
+    "url": "git+ssh://git@github.com/honeyscience/notebook.git"
   },
   "author": "walshie4",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/honeyscience/write-land/issues"
+    "url": "https://github.com/honeyscience/notebook/issues"
   },
-  "homepage": "https://github.com/honeyscience/write-land#readme",
+  "homepage": "https://github.com/honeyscience/notebook#readme",
   "devDependencies": {},
   "dependencies": {
     "commander": "^2.9.0"

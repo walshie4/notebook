@@ -69,13 +69,13 @@ function decrypt(keyStr, data) {
 
 if (cli.verbose) console.log('Starting up.');
 
-const outputDir = process.env.WRITE_DIR || path.join(process.env.HOME, 'writeLandOuput');
+const outputDir = process.env.WRITE_DIR || path.join(process.env.HOME, 'notebookOuput');
 if (!fs.existsSync(outputDir)) {
   if (cli.verbose) console.log(`Output dir not found creating at ${outputDir}`);
   fs.mkdirSync(outputDir);
 }
 
-const keyFile = process.env.WRITE_ENC_KEY || path.join(outputDir, '.writeLandKey');
+const keyFile = process.env.WRITE_ENC_KEY || path.join(outputDir, '.notebookKey');
 let key;
 
 hiddenInput('Enter encryption passphrase: ', function (passwd) {
@@ -114,7 +114,7 @@ function parseOptions() {
     if (cli.verbose) console.log('Reading output directory');
     // Read through save dir and list entries
     const files = fs.readdirSync(outputDir);
-    const notes = files.filter(function (note) { return note !== '.writeLandKey' });
+    const notes = files.filter(function (note) { return note !== '.notebookKey' });
     if (!notes.length) console.log(`No notes found @ ${outputDir}`);
     notes.forEach(function (note) {
       if (cli.verbose) console.log(`Reading note ${note}`);
